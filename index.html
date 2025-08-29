@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LoL Tiermaker</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #111; color: white; }
+    .tier { display: flex; align-items: center; margin: 5px 0; }
+    .tier-label { width: 50px; text-align: center; font-weight: bold; background: #333; padding: 5px; }
+    .tier-row { flex: 1; display: flex; gap: 5px; min-height: 64px; background: #222; padding: 5px; flex-wrap: wrap; }
+    img { width: 64px; height: 64px; object-fit: cover; cursor: grab; border-radius: 8px; }
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h1>LoL Champ Level Tracker</h1>
+  <input type="file" accept=".csv" onchange="loadCSV(event)" />
+  <div id="tierlist"></div>
+  <button onclick="saveCSV()">Save CSV</button>
+
+  <script>
+    const TIERS = ["10+", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
+
+    async function fetchChamps(version) {
+      const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`);
+      const data = await res.json();
+      return Object.keys(data.data);
+    }
+    
+    async function getLatestVersion() {
+      const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+      const versions = await res.json();
+      return versions[0];
+    }
+
+    const tierlistDiv = document.getElementById("tierlist");
+
+    TIERS.forEach(tier => {
+      const row = document.createElement("div");
+      row.className = "tier";
+
+      const label = document.createElement("div");
+      label.className = "tier-label";
+      label.innerText = tier;
+
+      const container = document.createElement("div");
+      container.className = "tier-row";
+      container.id = `tier-${tier}`;
+
+      row.appendChild(label);
+      row.appendChild(container);
+      tierlistDiv.appendChild(row);
+
+      new Sortable(container, { group: "shared", animation: 150 });
+    });
+
+    const poolRow = document.createElement("div");
+    poolRow.className = "tier";
+    poolRow.innerHTML = '<div class="tier-label">Pool</div>';
+    const poolContainer = document.createElement("div");
+    poolContainer.className = "tier-row";
+    poolContainer.id = "tier-Pool";
+    poolRow.appendChild(poolContainer);
+    tierlistDiv.appendChild(poolRow);
+    new Sortable(poolContainer, { group: "shared", animation: 150 });
+
+    getLatestVersion().then(version => {
+        fetchChamps(version).then(champions => {
+        champions.forEach(champ => {
+            const img = document.createElement("img");
+            img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+            img.alt = champ;
+            img.dataset.name = champ;
+            poolContainer.appendChild(img);
+            });
+        });
+    });
+
+
+    function saveCSV() {
+      let rows = [];
+      TIERS.concat(["Pool"]).forEach(tier => {
+        const container = document.getElementById(`tier-${tier}`);
+        const champs = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
+        rows.push(`${tier},${champs.join(";")}`);
+      });
+      const blob = new Blob([rows.join("\n")], { type: 'text/csv' });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "tierlist.csv";
+      a.click();
+    }
+
+    function loadCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const lines = e.target.result.split(/\r?\n/);
+            getLatestVersion().then(version => {
+                lines.forEach(line => {
+                const [tier, champs] = line.split(",");
+                const container = document.getElementById(`tier-${tier}`);
+                    if (container) {
+                        container.innerHTML = "";
+                        if (champs) {
+                            champs.split(";").forEach(champ => {
+                                if (!champ) return;
+                                const img = document.createElement("img");
+                                img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                                img.dataset.name = champ;
+                                container.appendChild(img);
+                            });
+                        }
+                    }
+                });
+            });
+        };
+        reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
