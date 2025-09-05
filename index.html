@@ -1,219 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>LoL Tiermaker</title>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <style>
-    body { font-family: sans-serif; background: #111; color: white; }
-    .tier { display: flex; align-items: center; margin: 5px 0; }
-    .tier-label { width: 70px; text-align: center; font-weight: bold; background: #333; padding: 5px; }
-    .tier-row { flex: 1; display: flex; gap: 5px; min-height: 64px; background: #222; padding: 5px; flex-wrap: wrap; }
-    img { width: 64px; height: 64px; object-fit: cover; cursor: grab; border-radius: 8px; }
-    button { margin: 5px; }
-    input[type="text"] { margin: 5px; padding: 5px; }
-  </style>
-</head>
-<body>
-  <h1>LoL Champ Level Tracker</h1>
-  <input type="file" accept=".csv" onchange="loadCSV(event)" />
-  <div id="tierlist"></div>
-  <button onclick="saveCSV()">Save CSV</button>
-
-  <h2>ARAM Tools</h2>
-  <input id="champInput" type="text" placeholder="Type champion and press Enter or Add" />
-  <button onclick="pickLowest()">Pick Lowest</button>
-  <button onclick="resetAram()">Reset</button>
-  <div id="aramlist"></div>
-
-  <script>
-    const TIERS = ["10+", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
-    let ALL_CHAMPS = [];
-
-    async function fetchChamps(version) {
-      const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`);
-      const data = await res.json();
-      return Object.keys(data.data);
-    }
-
-    async function getLatestVersion() {
-      const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-      const versions = await res.json();
-      return versions[0];
-    }
-
-    const tierlistDiv = document.getElementById("tierlist");
-
-    TIERS.forEach(tier => {
-      const row = document.createElement("div");
-      row.className = "tier";
-
-      const label = document.createElement("div");
-      label.className = "tier-label";
-      label.innerText = tier;
-
-      const container = document.createElement("div");
-      container.className = "tier-row";
-      container.id = `tier-${tier}`;
-
-      row.appendChild(label);
-      row.appendChild(container);
-      tierlistDiv.appendChild(row);
-
-      new Sortable(container, { group: "shared", animation: 150 });
-    });
-
-    const poolRow = document.createElement("div");
-    poolRow.className = "tier";
-    poolRow.innerHTML = '<div class="tier-label">Pool</div>';
-    const poolContainer = document.createElement("div");
-    poolContainer.className = "tier-row";
-    poolContainer.id = "tier-Pool";
-    poolRow.appendChild(poolContainer);
-    tierlistDiv.appendChild(poolRow);
-    new Sortable(poolContainer, { group: "shared", animation: 150 });
-
-    const aramlistDiv = document.getElementById("aramlist");
-    const aramRow = document.createElement("div");
-    aramRow.className = "tier";
-    aramRow.innerHTML = '<div class="tier-label">ARAM</div>';
-    const aramContainer = document.createElement("div");
-    aramContainer.className = "tier-row";
-    aramContainer.id = "tier-ARAM";
-    aramRow.appendChild(aramContainer);
-    aramlistDiv.appendChild(aramRow);
-
-    const resultRow = document.createElement("div");
-    resultRow.className = "tier";
-    resultRow.innerHTML = '<div class="tier-label">Result</div>';
-    const resultContainer = document.createElement("div");
-    resultContainer.className = "tier-row";
-    resultContainer.id = "tier-Result";
-    resultRow.appendChild(resultContainer);
-    aramlistDiv.appendChild(resultRow);
-
-    getLatestVersion().then(version => {
-      fetchChamps(version).then(champions => {
-        ALL_CHAMPS = champions;
-        champions.forEach(champ => {
-          const img = document.createElement("img");
-          img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
-          img.alt = champ;
-          img.dataset.name = champ;
-          poolContainer.appendChild(img);
-        });
-      });
-    });
-
-    function saveCSV() {
-      let rows = [];
-      TIERS.concat(["Pool"]).forEach(tier => {
-        const container = document.getElementById(`tier-${tier}`);
-        const champs = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
-        rows.push(`${tier},${champs.join(";")}`);
-      });
-      const blob = new Blob([rows.join("\n")], { type: 'text/csv' });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "tierlist.csv";
-      a.click();
-    }
-
-    function loadCSV(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        const lines = e.target.result.split(/\r?\n/);
-        getLatestVersion().then(version => {
-          lines.forEach(line => {
-            const [tier, champs] = line.split(",");
-            const container = document.getElementById(`tier-${tier}`);
-            if (container) {
-              container.innerHTML = "";
-              if (champs) {
-                champs.split(";").forEach(champ => {
-                  if (!champ) return;
-                  const img = document.createElement("img");
-                  img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
-                  img.dataset.name = champ;
-                  container.appendChild(img);
-                });
-              }
-            }
-          });
-        });
-      };
-      reader.readAsText(file);
-    }
-
-    function addToAram() {
-      const input = document.getElementById("champInput");
-      var champ = input.value.trim();
-      if (!champ) return;
-
-      const aramChamps = Array.from(document.getElementById("tier-ARAM").querySelectorAll("img")).map(img => img.dataset.name);
-      if (aramChamps.includes(champ)) {
-          input.value = "";
-          return;
-      }
-
-      if (champ == "Wukong"){
-            champ = "MonkeyKing";
-      }
-
-      if (!ALL_CHAMPS.includes(champ)) {
-          input.value = "";
-          return;
-      }
-
-      getLatestVersion().then(version => {
-        const img = document.createElement("img");
-        img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
-        img.alt = champ;
-        img.dataset.name = champ;
-        document.getElementById("tier-ARAM").appendChild(img);
-        input.value = "";
-      });
-    }
-
-    document.getElementById("champInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") addToAram();
-    });
-
-    function pickLowest() {
-      const aramChamps = Array.from(document.getElementById("tier-ARAM").querySelectorAll("img")).map(img => img.dataset.name);
-      const resultContainer = document.getElementById("tier-Result");
-      resultContainer.innerHTML = "";
-
-      if (aramChamps.length === 0) {
-        resultContainer.innerText = "No champions in ARAM pool.";
-        return;
-      }
-
-      for (let i = TIERS.length - 1; i >= 0; i--) {
-        const tier = TIERS[i];
-        const tierChamps = Array.from(document.getElementById(`tier-${tier}`).querySelectorAll("img")).map(img => img.dataset.name);
-        const found = tierChamps.filter(c => aramChamps.includes(c));
-        if (found.length > 0) {
-          const pick = found[found.length - 1];
-          getLatestVersion().then(version => {
-            const img = document.createElement("img");
-            img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${pick}.png`;
-            img.alt = pick;
-            img.dataset.name = pick;
-            resultContainer.appendChild(img);
-          });
-          return;
+    <meta charset="UTF-8" />
+    <title>LoL Tiermaker</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: white;
         }
-      }
-      resultContainer.innerText = "No match found in tiers.";
-    }
 
-    function resetAram() {
-      document.getElementById("tier-ARAM").innerHTML = "";
-      document.getElementById("tier-Result").innerHTML = "";
-    }
-  </script>
+        .tier {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .tier-label {
+            width: 70px;
+            text-align: center;
+            font-weight: bold;
+            background: #333;
+            padding: 5px;
+        }
+
+        .tier-row {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+            min-height: 64px;
+            background: #222;
+            padding: 5px;
+            flex-wrap: wrap;
+        }
+
+        img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            cursor: grab;
+            border-radius: 8px;
+        }
+
+        button {
+            margin: 5px;
+        }
+
+        input[type="text"] {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>LoL Champ Level Tracker</h1>
+    <input type="file" accept=".csv" onchange="loadCSV(event)" />
+    <div id="tierlist"></div>
+    <button onclick="saveCSV()">Save CSV</button>
+
+    <h2>ARAM Tools</h2>
+    <input id="champInput" type="text" placeholder="Type champion name" />
+    <button onclick="orderAram()">Order Aram Pool</button>
+    <button onclick="resetAram()">Reset</button>
+    <div id="aramlist"></div>
+
+    <script>
+        const TIERS = ["10+", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
+        let ALL_CHAMPS = [];
+
+        async function fetchChamps(version) {
+            const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`);
+            const data = await res.json();
+            return Object.keys(data.data);
+        }
+
+        async function getLatestVersion() {
+            const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+            const versions = await res.json();
+            return versions[0];
+        }
+
+        const tierlistDiv = document.getElementById("tierlist");
+
+        TIERS.forEach(tier => {
+            const row = document.createElement("div");
+            row.className = "tier";
+
+            const label = document.createElement("div");
+            label.className = "tier-label";
+            label.innerText = tier;
+
+            const container = document.createElement("div");
+            container.className = "tier-row";
+            container.id = `tier-${tier}`;
+
+            row.appendChild(label);
+            row.appendChild(container);
+            tierlistDiv.appendChild(row);
+
+            new Sortable(container, { group: "shared", animation: 150 });
+        });
+
+        const poolRow = document.createElement("div");
+        poolRow.className = "tier";
+        poolRow.innerHTML = '<div class="tier-label">Pool</div>';
+        const poolContainer = document.createElement("div");
+        poolContainer.className = "tier-row";
+        poolContainer.id = "tier-Pool";
+        poolRow.appendChild(poolContainer);
+        tierlistDiv.appendChild(poolRow);
+        new Sortable(poolContainer, { group: "shared", animation: 150 });
+
+        const aramlistDiv = document.getElementById("aramlist");
+        const aramRow = document.createElement("div");
+        aramRow.className = "tier";
+        aramRow.innerHTML = '<div class="tier-label">ARAM</div>';
+        const aramContainer = document.createElement("div");
+        aramContainer.className = "tier-row";
+        aramContainer.id = "tier-ARAM";
+        aramRow.appendChild(aramContainer);
+        aramlistDiv.appendChild(aramRow);
+
+        const resultRow = document.createElement("div");
+        resultRow.className = "tier";
+        resultRow.innerHTML = '<div class="tier-label">Result</div>';
+        const resultContainer = document.createElement("div");
+        resultContainer.className = "tier-row";
+        resultContainer.id = "tier-Result";
+        resultRow.appendChild(resultContainer);
+        aramlistDiv.appendChild(resultRow);
+
+        getLatestVersion().then(version => {
+            fetchChamps(version).then(champions => {
+                ALL_CHAMPS = champions;
+                champions.forEach(champ => {
+                    const img = document.createElement("img");
+                    img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                    img.alt = champ;
+                    img.dataset.name = champ;
+                    poolContainer.appendChild(img);
+                });
+            });
+        });
+
+        function saveCSV() {
+            let rows = [];
+            TIERS.concat(["Pool"]).forEach(tier => {
+                const container = document.getElementById(`tier-${tier}`);
+                const champs = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
+                rows.push(`${tier},${champs.join(";")}`);
+            });
+            const blob = new Blob([rows.join("\n")], { type: 'text/csv' });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "tierlist.csv";
+            a.click();
+        }
+
+        function loadCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const lines = e.target.result.split(/\r?\n/);
+                getLatestVersion().then(version => {
+                    lines.forEach(line => {
+                        const [tier, champs] = line.split(",");
+                        const container = document.getElementById(`tier-${tier}`);
+                        if (container) {
+                            container.innerHTML = "";
+                            if (champs) {
+                                champs.split(";").forEach(champ => {
+                                    if (!champ) return;
+                                    const img = document.createElement("img");
+                                    img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                                    img.dataset.name = champ;
+                                    container.appendChild(img);
+                                });
+                            }
+                        }
+                    });
+                });
+            };
+            reader.readAsText(file);
+        }
+
+        function addToAram() {
+            const input = document.getElementById("champInput");
+            var champ = input.value.trim();
+            if (!champ) return;
+
+            const aramChamps = Array.from(document.getElementById("tier-ARAM").querySelectorAll("img")).map(img => img.dataset.name);
+            if (aramChamps.includes(champ)) {
+                input.value = "";
+                return;
+            }
+
+            if (champ == "Wukong") {
+                champ = "MonkeyKing";
+            }
+
+            if (!ALL_CHAMPS.includes(champ)) {
+                input.value = "";
+                return;
+            }
+
+            getLatestVersion().then(version => {
+                const img = document.createElement("img");
+                img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                img.alt = champ;
+                img.dataset.name = champ;
+                document.getElementById("tier-ARAM").appendChild(img);
+                input.value = "";
+            });
+        }
+
+        document.getElementById("champInput").addEventListener("keydown", e => {
+            if (e.key === "Enter") addToAram();
+        });
+
+        function orderAram() {
+            const aramChamps = Array.from(document.getElementById("tier-ARAM").querySelectorAll("img")).map(img => img.dataset.name);
+            const resultContainer = document.getElementById("tier-Result");
+            resultContainer.innerHTML = "";
+
+            if (aramChamps.length === 0) {
+                resultContainer.innerText = "No champions in ARAM pool.";
+                return;
+            }
+
+            const champInfo = {};
+            TIERS.forEach((tier, i) => {
+                const container = document.getElementById(`tier-${tier}`);
+                const tierChamps = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
+                tierChamps.forEach((c, idx) => {
+                    champInfo[c] = { tierIndex: i, pos: idx };
+                });
+            });
+
+            const sorted = aramChamps.slice().sort((a, b) => {
+                const ca = champInfo[a] ?? { tierIndex: 999, pos: 999 };
+                const cb = champInfo[b] ?? { tierIndex: 999, pos: 999 };
+
+                if (ca.tierIndex !== cb.tierIndex) {
+                    return cb.tierIndex - ca.tierIndex;
+                }
+                return cb.pos - ca.pos;
+            });
+
+            getLatestVersion().then(version => {
+                sorted.forEach(champ => {
+                    const img = document.createElement("img");
+                    img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                    img.alt = champ;
+                    img.dataset.name = champ;
+                    resultContainer.appendChild(img);
+                });
+            });
+        }
+
+        function resetAram() {
+            document.getElementById("tier-ARAM").innerHTML = "";
+            document.getElementById("tier-Result").innerHTML = "";
+        }
+    </script>
 </body>
+
 </html>
