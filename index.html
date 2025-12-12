@@ -52,26 +52,54 @@
             margin: 5px;
             padding: 5px;
         }
+
+        h1, h2 {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        h1:hover, h2:hover {
+            opacity: 0.8;
+        }
+
+        .section-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+        }
     </style>
 </head>
 
 <body>
-    <h1>LoL Champ Level Tracker</h1>
-    <input type="file" accept=".csv" onchange="loadCSV(event)" />
-    <div id="tierlist"></div>
-    <button onclick="saveCSV()">Save CSV</button>
+    <h1 onclick="toggleSection('main-section')">LoL Champ Level Tracker</h1>
+    <div id="main-section" class="section-content">
+        <input type="file" accept=".csv" onchange="loadCSV(event)" />
+        <div id="tierlist"></div>
+        <button onclick="saveCSV()">Save CSV</button>
+    </div>
 
-    <h2>ARAM Tools</h2>
-    <input id="champInput" type="text" placeholder="Type champion name" />
-    <button onclick="orderAram()">Order Aram Pool</button>
-    <button onclick="resetAram()">Reset</button>
-    <div id="aramlist"></div>
+    <h2 onclick="toggleSection('aram-section')">ARAM Tools</h2>
+    <div id="aram-section" class="section-content">
+        <input id="champInput" type="text" placeholder="Type champion name" />
+        <button onclick="orderAram()">Order Aram Pool</button>
+        <button onclick="resetAram()">Reset</button>
+        <div id="aramlist"></div>
+    </div>
 
-    <h2>Champs in Focus</h2>
-    <input id="focusInput" type="text" placeholder="Type champion name" />
-    <div id="focuslist"></div>
+    <h2 onclick="toggleSection('focus-section')">Champs in Focus</h2>
+    <div id="focus-section" class="section-content">
+        <div id="focuslist"></div>
+    </div>
 
     <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
         const TIERS = ["10+", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
         let ALL_CHAMPS = [];
 
@@ -105,7 +133,11 @@
             row.appendChild(container);
             tierlistDiv.appendChild(row);
 
-            new Sortable(container, { group: "shared", animation: 150 });
+            new Sortable(container, { 
+                group: "shared", 
+                animation: 150,
+                onEnd: updateFocus
+            });
         });
 
         const poolRow = document.createElement("div");
@@ -162,7 +194,7 @@
 
         function saveCSV() {
             let rows = [];
-            TIERS.concat(["Pool", "Focus"]).forEach(tier => {
+            TIERS.concat(["Pool"]).forEach(tier => {
                 const container = document.getElementById(`tier-${tier}`);
                 const champs = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
                 rows.push(`${tier},${champs.join(";")}`);
@@ -183,6 +215,7 @@
                 getLatestVersion().then(version => {
                     lines.forEach(line => {
                         const [tier, champs] = line.split(",");
+                        if (tier === "Focus") return;
                         const container = document.getElementById(`tier-${tier}`);
                         if (container) {
                             container.innerHTML = "";
@@ -192,16 +225,12 @@
                                     const img = document.createElement("img");
                                     img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
                                     img.dataset.name = champ;
-                                    if (tier === "Focus") {
-                                        img.addEventListener("dblclick", function() {
-                                            this.remove();
-                                        });
-                                    }
                                     container.appendChild(img);
                                 });
                             }
                         }
                     });
+                    updateFocus();
                 });
             };
             reader.readAsText(file);
@@ -303,55 +332,32 @@
             document.getElementById("tier-Result").innerHTML = "";
         }
 
-        function addToFocus() {
-            const input = document.getElementById("focusInput");
-            var champ = input.value.trim();
-            if (!champ) return;
+        function updateFocus() {
+            const focusChamps = [];
+            
+            const reversedTiers = TIERS.slice().reverse();
+            reversedTiers.forEach(tier => {
+                const container = document.getElementById(`tier-${tier}`);
+                const tierChamps = Array.from(container.querySelectorAll("img")).map(img => img.dataset.name);
+                tierChamps.reverse().forEach(champ => {
+                    focusChamps.push(champ);
+                });
+            });
 
-            const focusChamps = Array.from(document.getElementById("tier-Focus").querySelectorAll("img")).map(img => img.dataset.name);
-            if (focusChamps.includes(champ)) {
-                input.value = "";
-                return;
-            }
-
-            if (champ == "Wukong") {
-                champ = "MonkeyKing";
-            }
-
-            if (!ALL_CHAMPS.includes(champ)) {
-                input.value = "";
-                return;
-            }
+            const top50 = focusChamps.slice(0, 50);
 
             getLatestVersion().then(version => {
-                const img = document.createElement("img");
-                img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
-                img.alt = champ;
-                img.dataset.name = champ;
-                img.addEventListener("dblclick", function() {
-                    this.remove();
+                const focusContainer = document.getElementById("tier-Focus");
+                focusContainer.innerHTML = "";
+                top50.forEach(champ => {
+                    const img = document.createElement("img");
+                    img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ}.png`;
+                    img.alt = champ;
+                    img.dataset.name = champ;
+                    focusContainer.appendChild(img);
                 });
-                document.getElementById("tier-Focus").appendChild(img);
-                input.value = "";
             });
         }
-
-        document.getElementById("focusInput").addEventListener("keydown", e => {
-            if (e.key === "Enter") addToFocus();
-        });
-
-        document.getElementById("focusInput").addEventListener("input", e => {
-            const input = e.target;
-            const typed = input.value;
-            if (!typed) return;
-
-            const matches = ALL_CHAMPS.filter(champ => champ.toLowerCase().startsWith(typed.toLowerCase()));
-            if (matches.length === 1 && matches[0].toLowerCase() !== typed.toLowerCase()) {
-                const cursorPos = typed.length;
-                input.value = matches[0];
-                input.setSelectionRange(cursorPos, matches[0].length);
-            }
-        });
     </script>
 </body>
 
