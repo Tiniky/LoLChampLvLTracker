@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>LoL - Aram Tools</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+
+<body>
+    <div class="hamburger-menu" onclick="toggleMenu()">
+        <div class="hamburger-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="menu" class="menu">
+        <a href="index.html" class="menu-item">Level Overview</a>
+        <a href="aram.html" class="menu-item active">Aram</a>
+        <a href="challenge.html" class="menu-item">Challenges</a>
+    </div>
+
+    <h1>Aram Tools</h1>
+
+    <h2>Champs in Focus</h2>
+    <div id="focus-section" class="section-content">
+        <div id="focuslist"></div>
+    </div>
+
+    <h2>Champs in Secondary Prio</h2>
+    <div id="secondary-prio-section" class="section-content">
+        <div id="secondaryPrioList"></div>
+    </div>
+
+    <script src="core.js"></script>
+</body>
+
+</html>

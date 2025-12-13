@@ -1,0 +1,115 @@
+body {
+    font-family: sans-serif;
+    background: #111;
+    color: white;
+}
+
+.tier {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.tier-label {
+    width: 70px;
+    text-align: center;
+    font-weight: bold;
+    background: #333;
+    padding: 5px;
+}
+
+.tier-row {
+    flex: 1;
+    display: flex;
+    gap: 5px;
+    min-height: 64px;
+    background: #222;
+    padding: 5px;
+    flex-wrap: wrap;
+}
+
+img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    cursor: grab;
+    border-radius: 8px;
+}
+
+button {
+    margin: 5px;
+}
+
+input[type="file"] {
+    margin: 5px;
+}
+
+input[type="text"] {
+    margin: 5px;
+    padding: 5px;
+}
+
+h1, h2 {
+    cursor: pointer;
+    user-select: none;
+}
+
+h1:hover, h2:hover {
+    opacity: 0.8;
+}
+
+.section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+}
+
+.hamburger-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.hamburger-icon div {
+    width: 30px;
+    height: 3px;
+    background: white;
+    margin: 6px 0;
+    transition: 0.3s;
+}
+
+.menu {
+    position: fixed;
+    top: -200px;
+    right: 20px;
+    width: 180px;
+    background: #222;
+    transition: top 0.3s ease;
+    z-index: 1000;
+    border-radius: 0 0 10px 10px;
+}
+
+.menu.open {
+    top: 60px;
+}
+
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: #333;
+}
+
+.menu-item.active {
+    background: #444;
+}

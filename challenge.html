@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>LoL - Challenges</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="hamburger-menu" onclick="toggleMenu()">
+        <div class="hamburger-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="menu" class="menu">
+        <a href="index.html" class="menu-item">Level Overview</a>
+        <a href="aram.html" class="menu-item">Aram</a>
+        <a href="challenge.html" class="menu-item active">Challenges</a>
+    </div>
+
+    <h1>Challenges</h1>
+    
+    <h2 onclick="toggleSection('jack-of-all')">Jack of All Champs</h2>
+    <p>Win a game with different champions</p>
+    <div id="jack-of-all" class="section-content">
+        <div id="jack-of-all-champs"></div>
+    </div>
+
+    <h2 onclick="toggleSection('all-random-all')">All Random All Champs</h2>
+    <p>Earn an S- grade or higher on different champions in ARAM</p>
+    <div id="all-random-all" class="section-content">
+        <div id="all-random-all-champs"></div>
+    </div>
+
+    <h2 onclick="toggleSection('invincible')">Invincible</h2>
+    <p>Win a game without dying with different champions</p>
+    <div id="invincible" class="section-content">
+        <div id="invincible-champs"></div>
+    </div>
+
+    <h2 onclick="toggleSection('perfectionist')">Perfectionist</h2>
+    <p>Earn an S+ grade on different champions</p>
+    <div id="perfectionist" class="section-content">
+        <div id="perfectionist-champs"></div>
+    </div>
+
+    <h2 onclick="toggleSection('same-penta-different')">Same Penta, Different Champs</h2>
+    <p>Get a Pentakill with different champions</p>
+    <div id="same-penta-different" class="section-content">
+        <div id="same-penta-different-champs"></div>
+    </div>
+
+    <script src="core.js"></script>
+</body>
+
+</html>
