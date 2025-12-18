@@ -185,7 +185,8 @@ function saveCSV() {
         "all-random-all-champs",
         "invincible-champs",
         "perfectionist-champs",
-        "same-penta-different-champs"
+        "same-penta-different-champs",
+        "protean-override-champs"
     ];
     
     challengeContainers.forEach(containerId => {
@@ -212,7 +213,8 @@ function loadCSV(event) {
             "all-random-all-champs",
             "invincible-champs",
             "perfectionist-champs",
-            "same-penta-different-champs"
+            "same-penta-different-champs",
+            "protean-override-champs"
         ];
         
         getLatestVersion().then(version => {
@@ -527,7 +529,8 @@ function initializeChallenges(version, champions) {
         "all-random-all-champs",
         "invincible-champs",
         "perfectionist-champs",
-        "same-penta-different-champs"
+        "same-penta-different-champs",
+        "protean-override-champs"
     ];
     
     challengeContainers.forEach(containerId => {
