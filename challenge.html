@@ -8,6 +8,9 @@
 </head>
 
 <body>
+    <button id="undoBtn" class="undo-btn" onclick="undoLastRemoval()" title="Undo last removal (up to 5)">
+        ↶
+    </button>
     <div class="hamburger-menu" onclick="toggleMenu()">
         <div class="hamburger-icon">
             <div></div>
@@ -17,44 +20,44 @@
     </div>
     <div id="menu" class="menu">
         <a href="index.html" class="menu-item">Level Overview</a>
-        <a href="aram.html" class="menu-item">Aram</a>
+        <a href="aram.html" class="menu-item">Focus</a>
         <a href="challenge.html" class="menu-item active">Challenges</a>
     </div>
 
     <h1>Challenges</h1>
     
-    <h2 onclick="toggleSection('jack-of-all')">Jack of All Champs</h2>
+    <h2 id="title-jack-of-all" onclick="toggleSection('jack-of-all')" data-challenge-id="jack-of-all-champs" data-challenge-name="Jack of All Champs">Jack of All Champs</h2>
     <p>Win a game with different champions</p>
     <div id="jack-of-all" class="section-content">
         <div id="jack-of-all-champs"></div>
     </div>
 
-    <h2 onclick="toggleSection('all-random-all')">All Random All Champs</h2>
+    <h2 id="title-all-random-all" onclick="toggleSection('all-random-all')" data-challenge-id="all-random-all-champs" data-challenge-name="All Random All Champs">All Random All Champs</h2>
     <p>Earn an S- grade or higher on different champions in ARAM</p>
     <div id="all-random-all" class="section-content">
         <div id="all-random-all-champs"></div>
     </div>
 
-    <h2 onclick="toggleSection('invincible')">Invincible</h2>
+    <h2 id="title-invincible" onclick="toggleSection('invincible')" data-challenge-id="invincible-champs" data-challenge-name="Invincible">Invincible</h2>
     <p>Win a game without dying with different champions</p>
     <div id="invincible" class="section-content">
         <div id="invincible-champs"></div>
     </div>
 
-    <h2 onclick="toggleSection('perfectionist')">Perfectionist</h2>
+    <h2 id="title-perfectionist" onclick="toggleSection('perfectionist')" data-challenge-id="perfectionist-champs" data-challenge-name="Perfectionist">Perfectionist</h2>
     <p>Earn an S+ grade on different champions</p>
     <div id="perfectionist" class="section-content">
         <div id="perfectionist-champs"></div>
     </div>
 
-    <h2 onclick="toggleSection('same-penta-different')">Same Penta, Different Champs</h2>
+    <h2 id="title-same-penta-different" onclick="toggleSection('same-penta-different')" data-challenge-id="same-penta-different-champs" data-challenge-name="Same Penta, Different Champs">Same Penta, Different Champs</h2>
     <p>Get a Pentakill with different champions</p>
     <div id="same-penta-different" class="section-content">
         <div id="same-penta-different-champs"></div>
     </div>
 
-    <h2 onclick="toggleSection('protean-override')">Protean Override</h2>
-    <p>Complete challenge with different champions</p>
+    <h2 id="title-protean-override" onclick="toggleSection('protean-override')" data-challenge-id="protean-override-champs" data-challenge-name="Protean Override">Protean Override</h2>
+    <p>Win games with different champions</p>
     <div id="protean-override" class="section-content">
         <div id="protean-override-champs"></div>
     </div>
