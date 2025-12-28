@@ -549,17 +549,12 @@ function initializeChallenges(version, champions) {
                 img.dataset.name = champ;
                 
                 img.addEventListener("dblclick", () => {
-                    const champName = img.dataset.name;
                     img.remove();
                     saveChallengeData(containerId);
-                    addToUndoHistory(containerId, champName);
-                    updateChallengeTitle(containerId);
                 });
                 
                 container.appendChild(img);
             });
-            
-            updateChallengeTitle(containerId);
         }
     });
 }
@@ -574,105 +569,3 @@ function saveChallengeData(containerId) {
         localStorage.setItem("challenges", JSON.stringify(challenges));
     }
 }
-
-// Undo History Management
-function addToUndoHistory(challengeId, championName) {
-    let undoHistory = JSON.parse(localStorage.getItem("undoHistory")) || [];
-    
-    undoHistory.push({
-        challengeId: challengeId,
-        championName: championName,
-        timestamp: Date.now()
-    });
-    
-    // Keep only last 5 actions
-    if (undoHistory.length > 5) {
-        undoHistory = undoHistory.slice(-5);
-    }
-    
-    localStorage.setItem("undoHistory", JSON.stringify(undoHistory));
-    updateUndoButton();
-}
-
-function updateUndoButton() {
-    const undoBtn = document.getElementById("undoBtn");
-    if (undoBtn) {
-        const undoHistory = JSON.parse(localStorage.getItem("undoHistory")) || [];
-        undoBtn.disabled = undoHistory.length === 0;
-        undoBtn.style.opacity = undoHistory.length === 0 ? "0.3" : "1";
-        undoBtn.style.cursor = undoHistory.length === 0 ? "not-allowed" : "pointer";
-    }
-}
-
-function undoLastRemoval() {
-    const undoHistory = JSON.parse(localStorage.getItem("undoHistory")) || [];
-    
-    if (undoHistory.length === 0) {
-        return;
-    }
-    
-    const lastAction = undoHistory.pop();
-    localStorage.setItem("undoHistory", JSON.stringify(undoHistory));
-    
-    const { challengeId, championName } = lastAction;
-    const container = document.getElementById(challengeId);
-    
-    if (container) {
-        getLatestVersion().then(version => {
-            const img = document.createElement("img");
-            img.src = `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`;
-            img.alt = championName;
-            img.dataset.name = championName;
-            
-            img.addEventListener("dblclick", () => {
-                const champName = img.dataset.name;
-                img.remove();
-                saveChallengeData(challengeId);
-                addToUndoHistory(challengeId, champName);
-                updateChallengeTitle(challengeId);
-            });
-            
-            container.appendChild(img);
-            
-            // Sort alphabetically
-            const allImages = Array.from(container.querySelectorAll("img"));
-            allImages.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
-            container.innerHTML = "";
-            allImages.forEach(sortedImg => container.appendChild(sortedImg));
-            
-            saveChallengeData(challengeId);
-            updateChallengeTitle(challengeId);
-            updateUndoButton();
-        });
-    }
-}
-
-function updateChallengeTitle(containerId) {
-    const titleMap = {
-        "jack-of-all-champs": "title-jack-of-all",
-        "all-random-all-champs": "title-all-random-all",
-        "invincible-champs": "title-invincible",
-        "perfectionist-champs": "title-perfectionist",
-        "same-penta-different-champs": "title-same-penta-different",
-        "protean-override-champs": "title-protean-override"
-    };
-    
-    const titleId = titleMap[containerId];
-    const titleElement = document.getElementById(titleId);
-    
-    if (titleElement) {
-        const container = document.getElementById(containerId);
-        const remaining = container ? container.querySelectorAll("img").length : 0;
-        const total = ALL_CHAMPS.length;
-        const completed = total - remaining;
-        const challengeName = titleElement.dataset.challengeName;
-        
-        titleElement.textContent = `${challengeName} - ${remaining} remaining (${completed}/${total})`;
-    }
-}
-
-// Initialize undo button state on page load
-if (document.getElementById("undoBtn")) {
-    updateUndoButton();
-}
-

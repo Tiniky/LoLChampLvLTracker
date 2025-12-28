@@ -75,42 +75,6 @@ h1:hover, h2:hover {
     z-index: 1001;
 }
 
-.undo-btn {
-    position: fixed;
-    top: 20px;
-    right: 65px;
-    width: 30px;
-    height: 30px;
-    background: #333;
-    color: white;
-    border: 2px solid #555;
-    border-radius: 6px;
-    cursor: pointer;
-    z-index: 1001;
-    font-size: 18px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.undo-btn:hover:not(:disabled) {
-    background: #444;
-    border-color: #777;
-    transform: scale(1.05);
-}
-
-.undo-btn:active:not(:disabled) {
-    transform: scale(0.95);
-}
-
-.undo-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-
 .hamburger-icon div {
     width: 30px;
     height: 3px;
